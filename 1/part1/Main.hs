@@ -20,4 +20,3 @@ main = do
   contents <- readFile "input.txt"
   let answer = sum $ map diffTuple $ uncurry zip . mapBoth sort $ splitEvery2 $ map readInt $ words contents
   print answer
-
