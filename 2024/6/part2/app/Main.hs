@@ -6,16 +6,15 @@ position x xs = case elemIndex x xs of
     Just index -> index
     Nothing    -> -1
 
-getGuardPosition :: [String] -> Maybe (Int, Int)
-getGuardPosition contents = 
-    let candidates = [(r, c) | (r, row) <- zip [0..] contents
-                      , c <- maybeToList (elemIndex '^' row)]
-    in case candidates of
-        (pos:_) -> Just pos
-        [] -> Nothing
+getGuardPosition :: [String] -> (Int, Int)
+getGuardPosition = findGuardPosition 0
   where
-    maybeToList Nothing = []
-    maybeToList (Just x) = [x]
+    findGuardPosition _ [] = (-1, -1)
+    findGuardPosition rowIndex (row:rows) =
+        let columnIndex = position '^' row
+        in if columnIndex /= -1
+           then (rowIndex, columnIndex)
+           else findGuardPosition (rowIndex + 1) rows
 
 updateAt :: Int -> a -> [a] -> [a]
 updateAt n newVal xs 
@@ -59,19 +58,17 @@ traverseMapLoopOrNot (x, y) d xs visited
             4 -> (x, y - 1)
             _ -> (x, y)
 
-checkLoopAfterReplace :: [String] -> (Int, Int) -> Bool
-checkLoopAfterReplace xs (row, col) = 
-    case getGuardPosition xs of
-        Nothing -> False
-        Just startingGuardPosition -> 
+checkLoopAfterReplace :: [String] -> (Int, Int) -> (Int, Int) -> Bool
+checkLoopAfterReplace xs g (row, col) = 
             let modifiedContents = updateNestedChar row col '#' xs
-                (loopFound, _) = traverseMapLoopOrNot startingGuardPosition 1 modifiedContents Set.empty
+                (loopFound, _) = traverseMapLoopOrNot g 1 modifiedContents Set.empty
             in loopFound == 1
 
 main :: IO ()
 main = do
     contents <- lines <$> readFile "input.txt"
-    let answer = sum [if checkLoopAfterReplace contents (row, col) then 1 else 0 
+    let startingGuardPosition = getGuardPosition contents
+    let answer = sum [if checkLoopAfterReplace contents startingGuardPosition (row, col) then 1 else 0 
                          | row <- [0..length contents - 1]
                          , col <- [0..length (contents !! row) - 1]] :: Int
     print answer
