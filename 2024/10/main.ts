@@ -70,5 +70,38 @@ function getTrailheadScores(input: number[][]): number[] {
     return trailheads.map(trailhead => getTrailheadScore(input, trailhead));
 }
 
-const answer = getTrailheadScores(input).reduce((acc, score) => acc + score, 0);
-console.log(answer);
+function getTrailheadRating(input: number[][], pos: [number, number]): number {
+    let rating = 0;
+    
+    function dfs(currentPos: [number, number]) {
+        const currentValue = getValue(input, currentPos);
+        
+        if (currentValue === 9) {
+            rating++
+            return;
+        }
+        
+        const directions = [up, down, left, right];
+        for (const dir of directions) {
+            const nextPos: [number, number] = [currentPos[0] + dir[0], currentPos[1] + dir[1]];
+            
+            if (isValidPosition(input, nextPos) && 
+                getValue(input, nextPos) === currentValue + 1) {
+                dfs(nextPos);
+            }
+        }
+    }
+    
+    dfs(pos);
+    return rating;
+}
+
+function getTrailheadRatings(input: number[][]): number[] {
+    const trailheads = getTrailheads(input);
+    return trailheads.map(trailhead => getTrailheadRating(input, trailhead));
+}
+
+const answer1 = getTrailheadScores(input).reduce((acc, score) => acc + score, 0);
+const answer2 = getTrailheadRatings(input).reduce((acc, score) => acc + score, 0);
+console.log(`part1: ${answer1}`);
+console.log(`part2: ${answer2}`);
